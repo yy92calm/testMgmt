@@ -1,0 +1,58 @@
+{% extends "../../base.html" %}
+{% block body %}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel">
+            <div class="panel-heading">
+                <a href="/base/project_add/" class="btn btn-primary">添加项目</a>
+            </div>
+            <div class="panel-body">
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>JIRA单号</th>
+                        <th>JIRA单名</th>
+                        <th>当前状态</th>
+                        <th>提测时间</th>
+                        <th>上线时间</th>
+                        <th>跟进人</th>
+                        <th>更多操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for project in prj_list %}
+                    <tr>
+                        <td>{{ project.prj_id }}</td>
+                        <td>{{ project.prj_num }}</td>
+                        <td>{{ project.prj_name }}</td>
+                        <td>{{ project.description }}</td>
+                        <td>{{ project.begin_time }}</td>
+                        <td>{{ project.end_time }}</td>
+                        <td>{{ project.QC }}</td>
+                        <td>
+                            <a href="/base/project_update?prj_id={{ project.prj_id }}" class="layui-btn layui-btn-xs"
+                               lay-event="edit">编辑</a>
+                            <a href="/base/project_delete?prj_id={{ project.prj_id }}"
+                               class="layui-btn layui-btn-danger layui-btn-xs"
+                               onclick="{if(confirm('确定删除项目{{ project.prj_num }}吗?')){this.document.formname.submit();return true;}return false;}"
+                               lay-event="del">删除</a>
+                            <a href="/base/case?prj_id={{ project.prj_id }}"
+                               class="layui-btn layui-btn-danger layui-btn-xs"
+                               lay-event="del">查看用例</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {% endblock %}
+
+    {% block javascript %}
+    {% endblock %}

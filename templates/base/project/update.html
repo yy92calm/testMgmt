@@ -1,0 +1,134 @@
+
+{% extends "../../base.html" %}
+
+{% block body %}
+<link rel="stylesheet" type="text/css" href="/static/css/bootstrap-datetimepicker.min.css">
+<div class="row">
+    <div class="col-md-12">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h3 class="panel-title">更新项目</h3>
+            </div>
+            <div class="ibox-content">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">JIRA单号</label>
+                        <input id="prj_id" value ={{project.prj_id }} hidden>
+                        <div class="col-sm-8">
+                            <input type="text" id="prj_num" class="form-control" value={{project.prj_num}}>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                            <label class="col-sm-2 control-label">JIRA单名</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="prj_name" class="form-control" value={{project.prj_name}}>
+                            </div>
+                    </div>
+                    
+                    <div class="form-group">
+                            <label class="col-sm-2 control-label">当前状态</label>
+                            <div class="col-sm-8">
+                                    <select id="description" class="form-control" onchange=get_if()>
+                                        <option value=>{{project.description}}</option>
+                                        <option value="未提测">未提测</option>
+                                        <option value="测试中">测试中</option>
+                                        <option value="测试完成">测试完成</option>
+                                        <option value="工单延迟">工单延迟</option>
+                                    </select>
+                            </div>
+                    </div>
+    
+                        <div class="form-group">
+                                <label class="col-sm-2 control-label">提测时间</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="begin_time" class="form-control" value={{project.begin_time}}>
+                                </div>
+                        </div>
+    
+                        <div class="form-group">
+                                <label class="col-sm-2 control-label">上线时间</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="end_time" class="form-control" value={{project.end_time}}>
+                                </div>
+                        </div>
+    
+                        <div class="form-group">
+                                <label class="col-sm-2 control-label">跟进人</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="QC" class="form-control" value={{project.QC}}>
+                                </div>
+                        </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-6">
+                            <button type="submit" id="submit" class="btn btn-primary">更新</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+    {% endblock %}
+    {% block javascript %}
+    <script src="/static/scripts/bootstrap-datetimepicker.js"></script>
+    <script src="/static/scripts/bootstrap-datetimepicker.zh-CN.js"></script>
+    <script>
+    $("#begin_time").datetimepicker({
+        format: 'yyyy年mm月dd日',
+        todayHighlight:1,
+        minView:'month',
+        language: 'zh-CN',
+        forceParse: 0,
+        autoclose:true,
+        startDate:new Date()
+    });
+    $("#end_time").datetimepicker({
+        format: 'yyyy年mm月dd日',
+        todayHighlight:1,
+        minView:'month',
+        language: 'zh-CN',
+        forceParse: 0,
+        autoclose:true,
+        startDate:new Date()
+    });
+        $(document).ready(function () {
+
+            $("#submit").click(function () {
+            var prj_num = $("#prj_num").val();
+            var prj_name = $("#prj_name").val();
+            var description = $("#description").val();
+            var begin_time = $("#begin_time").val();
+            var end_time = $("#end_time").val();
+            var QC = $("#QC").val();
+            var prj_id = $("#prj_id").val();
+            $.ajax({
+                url: "/base/project_update/",
+                type: "post",
+                data: {
+                    "prj_id":prj_id,
+                    "prj_num": prj_num,
+                    "prj_name":prj_name,
+                    "description":description,
+                    "begin_time":begin_time,
+                    "end_time":end_time,
+                    "QC":QC
+                },
+                // dataType: "json",
+                success: function () {
+                    alert("更新成功");
+                    window.location.replace("/base/project/");
+                },
+                error: function () {
+                    alert("error!");
+                }
+            });
+        });
+        });
+
+    </script>
+
+
+    {% endblock %}

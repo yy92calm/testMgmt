@@ -1,0 +1,152 @@
+
+{% extends "../../base.html" %}
+
+{% block body %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h3 class="panel-title">更新用例</h3>
+            </div>
+            <div class="ibox-content">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">用例标题</label>
+                        <input id="case_id" value ={{case.case_id }} hidden>
+                        <div class="col-sm-8">
+                            <input type="text" id="case_name" class="form-control" value={{case.case_name}}>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                            <label class="col-sm-2 control-label">前置条件</label>
+                            <div class="col-sm-8">
+                                <textarea id="case_pre" class="form-control" rows="3">{{case.case_pre}}</textarea>
+                            </div>
+                    </div>
+                    
+                    <div class="form-group">
+                            <label class="col-sm-2 control-label">测试类型</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="case_type" class="form-control" value={{case.case_pre}}>
+                            </div>
+                    </div>
+                    
+                    <div class="form-group">
+                            <label class="col-sm-2 control-label">操作步骤</label>
+                            <div class="col-sm-8">
+                                <textarea id="case_func" placeholder="请输入内容" class="form-control" rows="3">{{case.case_func}}</textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                                <label class="col-sm-2 control-label">期望结果</label>
+                                <div class="col-sm-8">
+                                    <textarea id="case_expect" placeholder="请输入内容" class="form-control" rows="3">{{case.case_expect}}</textarea>
+                                </div>
+                        </div>
+    
+                        <div class="form-group">
+                                <label class="col-sm-2 control-label">测试结果</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="case_result" class="form-control" value={{case.case_result}}>
+                                </div>
+                        </div>
+    
+                        <div class="form-group">
+                                <label class="col-sm-2 control-label">优先级</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="case_level" class="form-control" value={{case.case_level}}>
+                                </div>
+                        </div>
+    
+                        <div class="form-group">
+                                <label class="col-sm-2 control-label">设计人</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="case_creator" class="form-control" value={{case.case_creator}}>
+                                </div>
+                        </div>
+    
+                        <div class="form-group">
+                                <label class="col-sm-2 control-label">执行人</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="case_executor" class="form-control" value={{case.case_executor}}>
+                                </div>
+                        </div>
+    
+                        <div class="form-group">
+                                <label class="col-sm-2 control-label">执行时间</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="case_time" class="form-control" value={{case.case_time}}>
+                                </div>
+                        </div>
+    
+                        <div class="form-group">
+                                <label class="col-sm-2 control-label">备注</label>
+                                <div class="col-sm-8">
+                                    <textarea id="case_content" placeholder="请输入内容" class="form-control" rows="3">{{case.case_content}}</textarea>
+                                </div>
+                        </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-6">
+                            <button type="submit" id="submit" class="btn btn-primary">更新</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+    {% endblock %}
+    {% block javascript %}
+    <script>
+        $(document).ready(function () {
+
+            $("#submit").click(function () {
+            var case_name = $("#case_name").val();
+            var case_pre = $("#case_pre").val();
+            var case_type = $("#case_type").val();
+            var case_func = $("#case_func").val();
+            var case_expect = $("#case_expect").val();
+            var case_result = $("#case_result").val();
+            var case_level = $("#case_level").val();
+            var case_creator = $("#case_creator").val();
+            var case_executor = $("#case_executor").val();
+            var case_time = $("#case_time").val();
+            var case_content = $("#case_content").val();
+            var case_id = $("#case_id").val();
+            $.ajax({
+                url: "/base/case_update/",
+                type: "post",
+                data: {
+                    "case_id": case_id,
+                    "case_name": case_name,
+                    "case_pre":case_pre,
+                    "case_type":case_type,
+                    "case_func":case_func,
+                    "case_expect":case_expect,
+                    "case_result":case_result,
+                    "case_level":case_level,
+                    "case_creator":case_creator,
+                    "case_executor":case_executor,
+                    "case_time":case_time,
+                    "case_content":case_content
+                },
+                // dataType: "json",
+                success: function () {
+                    alert("更新成功");
+                    window.location.replace("/base/case/");
+                },
+                error: function () {
+                    alert("error!");
+                }
+            });
+        });
+        });
+
+    </script>
+
+
+    {% endblock %}

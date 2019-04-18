@@ -1,0 +1,28 @@
+{% extends "../../base.html" %}
+{% block body %}
+<link rel="stylesheet" type="text/css" href="/static/css/jsmind.css">
+<style type="text/css">
+  #jsmind_container{
+      width:1080px;
+      height:500px;
+  }
+</style>
+<div class="panel-body">
+    <div id="jsmind_container"></div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script src="/static/scripts/jsmind.js"></script>
+<script>
+    var mind = {{mind_list|safe}}
+    var options = {
+        container:'jsmind_container',
+        editable:false,
+        theme:'primary'
+    };
+    var jm = new jsMind(options);
+    // 让 jm 显示这个 mind 即可
+    jm.show(mind); 
+</script>
+{% endblock %}

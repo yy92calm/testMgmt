@@ -1,0 +1,302 @@
+{% extends "../../base.html" %}
+{% block body %}
+<link rel="stylesheet" type="text/css" href="/static/css/handsontable.full.css">
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel">
+            <div class="panel-heading">
+                <a id="submit" class="btn btn-primary">保存用例</a>
+                <a id="submit_add" class="btn btn-primary">增加一条</a>
+                <label class="btn btn-primary" for="submit_import">上传文件</label>
+                <input id="submit_import" type="file" style="position:absolute;clip:rect(0 0 0 0);"onchange="importf(this)"/>
+                <a id="submit_export" href="/base/case_export?prj_id={{ prj_id }}" class="btn btn-primary">导出excel</a>
+                <a id="submit_freemind" href="/base/case_xmind?prj_id={{ prj_id }}" class="btn btn-primary">freemind</a>
+            </div>
+
+            <div class="panel-body">
+                <div id="case_excel"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script src="/static/scripts/handsontable.full.js"></script>
+<script src="/static/scripts/zh-CN.js"></script>
+<script src="/static/scripts/xlsx.full.min.js"></script>
+<script type="text/javascript">
+var project = {{project|safe}};
+var case_list= {{case_list|safe}};
+var merge_list = {{merge_list|safe}};
+var prj_id = {{prj_id|safe}};
+
+var mergeCellsData = new Array();
+var deleteList = new Array();
+var mergeList = new Array();
+var unmergeList = new Array();
+$('#case_excel').empty();
+var excelElement = document.querySelector('#case_excel');
+var excelSettings = {
+  data: case_list,
+  columns: [
+    {
+      data:'case_sort',
+      type:'text',
+    },
+    {
+      data: 'case_locate',
+      type: 'text',
+    },
+    {
+      data: 'case_name',
+      type: 'text',
+    },
+    {
+      data: 'case_pre',
+      type: 'text',
+    },
+    {
+      data: 'case_type',
+      type: 'text'
+    },
+    {
+      data: 'case_func',
+      type: 'text'
+    },
+    {
+      data: 'case_expect',
+      type: 'text'
+    },
+    {
+      data: 'case_result',
+      type:'dropdown',
+      source:['pass','fail','notest']
+    },
+    {
+      data: 'case_level',
+      type: 'text'
+    },
+    {
+      data: 'case_creator',
+      type: 'text'
+    },
+    {
+      data: 'case_executor',
+      type: 'text'
+    },
+    {
+      data: 'case_time',
+      type: 'date',
+      dateFormat: 'MM/DD/YYYY'
+    },
+    {
+      data: 'case_content',
+      type: 'text',
+    },
+    {
+      data:'case_id',
+      type:'text',
+    }
+  ],
+  stretchH: 'all',
+  hiddenColumns: {
+    columns: [13]
+  },
+  exportFile: true,
+  contextMenu: ['row_above','row_below','remove_row','copy','mergeCells'],
+  mergeCells: mergeCellsData,
+  colHeaders: [
+    '序号',
+    '模块',
+    '用例标题',
+    '前置条件',
+    '测试类型',
+    '操作步骤',
+    '期望结果',
+    '测试结果',
+    '优先级',
+    '设计人',
+    '执行人',
+    '执行时间',
+    '备注'
+  ],
+  language: 'zh-CN',
+  manualRowResize: true,
+  manualColumnResize: true,
+  manualRowMove: true,
+  manualColumnMove: true,
+  colWidths:[50,200,200,300,100,300,300,100,100,100,100,100,300],
+  rowHeights:50,
+  className:'htLeft htMiddle',
+};
+
+for(var i=0;i<merge_list.length;i++)
+{
+  var tempList = merge_list[i].cell_range.split(',');
+  var colSpan = parseInt(tempList[0].replace(/[^0-9]/ig,""));
+  var rowSpan = parseInt(tempList[1].replace(/[^0-9]/ig,""));
+  var startCol = parseInt(tempList[2].replace(/[^0-9]/ig,""));
+  var startRow = parseInt(tempList[3].replace(/[^0-9]/ig,""));
+  var handledObj = {
+                row : startRow,
+                col : startCol,
+                rowspan : rowSpan,
+                colspan : colSpan};
+  mergeCellsData.push(handledObj);
+};
+
+var hot = new Handsontable(excelElement, excelSettings);
+
+hot.addHook('beforeRemoveRow',function(index,amount,physicalRows,source){
+for(var i=0;i<physicalRows.length;i++){
+  deleteList.push(hot.getDataAtRow(physicalRows[i]));
+}
+});
+
+hot.addHook('afterMergeCells',function(cellRange,mergeParent,auto){
+  var startRow = cellRange.toObject().from.row;
+  var startCol = cellRange.toObject().from.col;
+  var rowSpan = cellRange.toObject().to.row - cellRange.toObject().from.row +1;
+  var colSpan = cellRange.toObject().to.col - cellRange.toObject().from.col +1;
+  var data = {row:startRow,
+              col:startCol,
+              rowspan:rowSpan,
+              colspan:colSpan};
+  mergeList.push(data);
+});
+
+hot.addHook('afterUnmergeCells',function(cellRange,mergeParent,auto){
+  var startRow = cellRange.toObject().from.row;
+  var startCol = cellRange.toObject().from.col;
+  var rowSpan = cellRange.toObject().to.row - cellRange.toObject().from.row +1;
+  var colSpan = cellRange.toObject().to.col - cellRange.toObject().from.col +1;
+  var data = {row:startRow,
+              col:startCol,
+              rowspan:rowSpan,
+              colspan:colSpan};
+  if (data in mergeList)
+  {
+    mergeList.pop(data);
+  }else
+  {
+    unmergeList.push(data);
+  }
+});
+
+$(document).ready(function () {
+
+  $("#submit").click(function () {
+  var excelData = hot.getData();
+  $.ajax({
+    url: "/base/case_update/",
+    type: "post",
+    traditional:true,
+    //dataType:'json',
+    data: {
+      "excelData":excelData,
+      "deleteList":deleteList,
+      "prj_id":prj_id,
+      "mergeList":JSON.stringify(mergeList),
+      "unmergeList":JSON.stringify(unmergeList)
+    },
+    success: function () {
+        alert("更新成功");
+        window.location.replace("/base/case/?prj_id="+prj_id);
+    },
+    error: function () {
+        alert("error!");
+    }
+  });
+  });
+
+  $("#submit_add").click(function () {
+  var maxindex = hot.countRows();
+  hot.alter('insert_row',maxindex);
+  });
+});
+
+</script>
+<script>
+  var wb;//读取完成的数据
+  var rABS = false; //是否将文件读取为二进制字符串
+  var jsonData;
+
+  function importf(obj) {//导入
+      if(!obj.files) {
+          return;
+      }
+      var f = obj.files[0];
+      var reader = new FileReader();
+      reader.onload = function(e) {
+          var data = e.target.result;
+          if(rABS) {
+              wb = XLSX.read(btoa(fixdata(data)), {//手动转化
+                  type: 'base64'
+              });
+          } else {
+              wb = XLSX.read(data, {
+                  type: 'binary'
+              });
+          }
+          //wb.SheetNames[0]是获取Sheets中第一个Sheet的名字
+          //wb.Sheets[Sheet名]获取第一个Sheet的数据
+          excelMerge = wb.Sheets[wb.SheetNames[0]]["!merges"];
+          for(var i=0;i<excelMerge.length;i++)
+          {
+            var startRow = excelMerge[i].s.r-1;
+            var startCol = excelMerge[i].s.c+1;
+            var rowSpan = excelMerge[i].e.r - excelMerge[i].s.r + 1;
+            var colSpan = excelMerge[i].e.c - excelMerge[i].s.c + 1;
+            
+            var data = {
+              row:startRow,
+              col:startCol,
+              rowspan:rowSpan,
+              colspan:colSpan};
+            mergeList.push(data);
+            mergeCellsData.push(data);
+          }
+          jsonData=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+          var jsonData2=[];
+          for(var i=0;i<jsonData.length;i++)
+          {
+            var tempJson = {};
+            tempJson['case_sort']=i;
+            tempJson['case_locate']=jsonData[i]['模块（功能点）'];
+            tempJson['case_name']=jsonData[i]['用例标题'];
+            tempJson['case_pre']=jsonData[i]['前置条件'];
+            tempJson['case_type']=jsonData[i]['测试类型'];
+            tempJson['case_func']=jsonData[i]['操作步骤'];
+            tempJson['case_expect']=jsonData[i]['期望结果'];
+            tempJson['case_result']=jsonData[i]['测试结果'];
+            tempJson['case_level']=jsonData[i]['优先级'];
+            tempJson['case_creator']=jsonData[i]['设计人'];
+            tempJson['case_executor']=jsonData[i]['执行人'];
+            tempJson['case_time']=jsonData[i]['执行时间'];
+            tempJson['case_content']=jsonData[i]['备注'];
+            jsonData2.push(tempJson);
+          }
+          excelSettings.mergeCells = mergeCellsData;
+          excelSettings.data = jsonData2;
+          //hot.loadData(jsonData2);
+          hot.updateSettings(excelSettings);
+      }
+      if(rABS) {
+          reader.readAsArrayBuffer(f);
+      } else {
+          reader.readAsBinaryString(f);
+      }
+  }
+
+  function fixdata(data) { //文件流转BinaryString
+      var o = "",
+          l = 0,
+          w = 10240;
+      for(; l < data.byteLength / w; ++l) o += String.fromCharCode.apply(null, new Uint8Array(data.slice(l * w, l * w + w)));
+      o += String.fromCharCode.apply(null, new Uint8Array(data.slice(l * w)));
+      return o;
+  }
+
+</script>
+{% endblock %}
